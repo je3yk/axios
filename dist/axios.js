@@ -919,6 +919,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  xsrfHeaderName: 'X-XSRF-TOKEN',
 	
 	  maxContentLength: -1,
+	  maxBodyLength: -1,
 	
 	  validateStatus: function validateStatus(status) {
 	    return status >= 200 && status < 300;
@@ -974,7 +975,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	var isURLSameOrigin = __webpack_require__(20);
 	var createError = __webpack_require__(14);
 	
-	module.exports = function xhrAdapter(config) {
+	function xhrAdapter(config, sync) {
 	  return new Promise(function dispatchXhrRequest(resolve, reject) {
 	    var requestData = config.data;
 	    var requestHeaders = config.headers;
@@ -993,10 +994,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }
 	
 	    var fullPath = buildFullPath(config.baseURL, config.url);
-	    request.open(config.method.toUpperCase(), buildURL(fullPath, config.params, config.paramsSerializer), true);
+	    request.open(config.method.toUpperCase(), buildURL(fullPath, config.params, config.paramsSerializer), !sync);
 	
-	    // Set the request timeout in MS
-	    request.timeout = config.timeout;
+	    if (!sync) {
+	      // Set the request timeout in MS
+	      request.timeout = config.timeout;
+	    }
 	
 	    // Listen for ready state
 	    request.onreadystatechange = function handleLoad() {
@@ -1143,7 +1146,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	    // Send the request
 	    request.send(requestData);
 	  });
+	}
+	
+	xhrAdapter.sync = function sync(config) {
+	  return xhrAdapter(config, true);
 	};
+	
+	module.exports = xhrAdapter;
 
 
 /***/ }),
@@ -1227,7 +1236,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  error.response = response;
 	  error.isAxiosError = true;
 	
-	  error.toJSON = function() {
+	  error.toJSON = function toJSON() {
 	    return {
 	      // Standard
 	      message: this.message,
@@ -1528,14 +1537,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	  config2 = config2 || {};
 	  var config = {};
 	
-	  var valueFromConfig2Keys = ['url', 'method', 'params', 'data'];
-	  var mergeDeepPropertiesKeys = ['headers', 'auth', 'proxy'];
+	  var valueFromConfig2Keys = ['url', 'method', 'data'];
+	  var mergeDeepPropertiesKeys = ['headers', 'auth', 'proxy', 'params'];
 	  var defaultToConfig2Keys = [
 	    'baseURL', 'url', 'transformRequest', 'transformResponse', 'paramsSerializer',
 	    'timeout', 'withCredentials', 'adapter', 'responseType', 'xsrfCookieName',
 	    'xsrfHeaderName', 'onUploadProgress', 'onDownloadProgress',
-	    'maxContentLength', 'validateStatus', 'maxRedirects', 'httpAgent',
-	    'httpsAgent', 'cancelToken', 'socketPath'
+	    'maxContentLength', 'maxBodyLength', 'validateStatus', 'maxRedirects', 'httpAgent',
+	    'httpsAgent', 'cancelToken', 'socketPath', 'responseEncoding'
 	  ];
 	
 	  utils.forEach(valueFromConfig2Keys, function valueFromConfig2(prop) {
