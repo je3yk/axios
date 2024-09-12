@@ -1,4 +1,3 @@
-/* axios v0.19.2 | (c) 2020 by Matt Zabriskie */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
 		module.exports = factory();
@@ -975,7 +974,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	var isURLSameOrigin = __webpack_require__(20);
 	var createError = __webpack_require__(14);
 	
-	module.exports = function xhrAdapter(config) {
+	function xhrAdapter(config, sync) {
 	  return new Promise(function dispatchXhrRequest(resolve, reject) {
 	    var requestData = config.data;
 	    var requestHeaders = config.headers;
@@ -994,10 +993,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }
 	
 	    var fullPath = buildFullPath(config.baseURL, config.url);
-	    request.open(config.method.toUpperCase(), buildURL(fullPath, config.params, config.paramsSerializer), true);
+	    request.open(config.method.toUpperCase(), buildURL(fullPath, config.params, config.paramsSerializer), !sync);
 	
-	    // Set the request timeout in MS
-	    request.timeout = config.timeout;
+	    if(!sync) {
+	      // Set the request timeout in MS
+	      request.timeout = config.timeout;
+	    }
 	
 	    // Listen for ready state
 	    request.onreadystatechange = function handleLoad() {
@@ -1145,6 +1146,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	    request.send(requestData);
 	  });
 	};
+	
+	xhrAdapter.sync = function(config) {
+	  return xhrAdapter(config, true);
+	};
+	
+	module.exports = xhrAdapter;
 
 
 /***/ }),
